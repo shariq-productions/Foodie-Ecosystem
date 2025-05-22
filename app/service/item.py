@@ -35,11 +35,18 @@ async def viewAllItems(user_id: PydanticObjectId) -> list[ViewAllItemsSchema]:
         items = await ItemDetailsmModel.find_all().to_list()
         item_list = []
         for item in items:
-            print("I am here")
-            quantity = await CartDetailsModel.find(
-                CartDetailsModel.user_id == user_id, CartDetailsModel.item_id == item.id
-            ).to_list()
-            print(quantity)
+            quantity = await CartDetailsModel.find_one(
+                (
+                    CartDetailsModel.user_id.id == user_id
+                    if hasattr(CartDetailsModel.user_id, "id")
+                    else CartDetailsModel.user_id == user_id
+                ),
+                (
+                    CartDetailsModel.item_id.id == item.id
+                    if hasattr(CartDetailsModel.item_id, "id")
+                    else CartDetailsModel.item_id == item.id
+                ),
+            )
             item_list.append(
                 ViewAllItemsSchema(
                     id=item.id,
@@ -48,9 +55,17 @@ async def viewAllItems(user_id: PydanticObjectId) -> list[ViewAllItemsSchema]:
                     cost=item.cost,
                     rating=item.rating,
                     image_url=item.image_url,
-                    user_id=item.user_id,
-                    category_id=item.category_id,
-                    product_count=quantity.quantity,
+                    user_id=(
+                        item.user_id.ref.id
+                        if hasattr(item.user_id, "ref") and item.user_id.ref
+                        else item.user_id
+                    ),
+                    category_id=(
+                        item.category_id.ref.id
+                        if hasattr(item.category_id, "ref") and item.category_id.ref
+                        else item.category_id
+                    ),
+                    product_count=quantity.quantity if quantity else 0,
                 )
             )
 
