@@ -1,29 +1,45 @@
+from typing import List
+from app.service.cart import view_cart
 from fastapi import HTTPException
-from app.schema.order import ShowOrderDetails, AddOrderSchema, OrderItemSchema
+from app.schema.order import ShowOrderDetails, OrderItemSchema
 from app.models.order import OrderDetailsModel
 from beanie import PydanticObjectId
 
 
-async def add_order_details(order: AddOrderSchema) -> ShowOrderDetails:
-    order_items = [
-        OrderItemSchema(
-            item_id=item.item_id,
-            item_name=item.item_name,
-            quantity=item.quantity,
-            price=item.price,
-            total_amount=item.total_amount,
+async def add_order_details(user_id: PydanticObjectId) -> List[ShowOrderDetails]:
+
+    cart_details = await view_cart(user_id)
+    orders_to_create = []
+    for admin_group in cart_details["admin"]:
+        admin_id = admin_group["admin_id"]
+        items = admin_group["items"]
+
+        order_items = [
+            OrderItemSchema(
+                item_id=item["item_id"],
+                item_name=item["item_name"],
+                quantity=item["quantity"],
+                price=item["price"],
+                total_amount=item["quantity"]
+                * item["price"],  # assuming total = qty * price
+            )
+            for item in items
+        ]
+
+        order_detail_doc = OrderDetailsModel(
+            user_id=cart_details["user_id"],
+            admin_id=admin_id,
+            items=order_items,
+            status="PENDING",  # or any default status you want
         )
-        for item in order.items
-    ]
-    order_detail_docs = OrderDetailsModel(
-        user_id=order.user_id,
-        admin_id=order.admin_id,
-        items=order_items,
-        status=order.status,
-    )
+
+        orders_to_create.append(order_detail_doc)
+    order_details_list = []
     try:
-        await order_detail_docs.insert()
-        return ShowOrderDetails(d=order_detail_docs.id)
+        for order_doc in orders_to_create:
+            await order_doc.insert()
+            order_details_list.append(ShowOrderDetails(id=order_doc.id))
+        return
     except Exception as e:
         print(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

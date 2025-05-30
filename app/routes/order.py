@@ -1,7 +1,7 @@
-from fastapi import APIRouter, status
+from app.dependencies.auth import get_current_user
+from fastapi import APIRouter, status, Depends
 from app.schema.order import (
     ShowOrderDetails,
-    AddOrderSchema,
 )
 from app.service.order import (
     add_order_details,
@@ -20,8 +20,8 @@ orderRouter = APIRouter()
     response_model=ShowOrderDetails,
     description="Add order details",
 )
-async def add_order(order: AddOrderSchema):
-    order_data = await add_order_details(order)
+async def add_order(user_data=Depends(get_current_user)):
+    order_data = await add_order_details(user_data.id)
     return order_data
 
 
