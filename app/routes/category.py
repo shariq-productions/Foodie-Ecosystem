@@ -2,6 +2,7 @@ from fastapi import APIRouter, status
 from app.schema.category import (
     AddCategorySchema,
     ShowCategoryDetails,
+    ViewAllCategorySchema
 )
 from app.service.category import (
     add_category_details,
@@ -47,7 +48,7 @@ async def remove_category(category_id: PydanticObjectId):
 @categoryRouter.get(
     "/viewAllCategories",
     status_code=status.HTTP_200_OK,
-    response_model=list[ShowCategoryDetails],
+    response_model=list[ViewAllCategorySchema],
     description="View all categories",
 )
 async def get_all_categories():

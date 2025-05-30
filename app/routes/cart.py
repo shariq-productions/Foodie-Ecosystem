@@ -2,6 +2,7 @@ from app.dependencies.auth import get_current_user
 from fastapi import APIRouter, status, Depends
 from app.schema.cart import (
     ShowCartDetails,
+    ViewCartResponse
 )
 from app.service.cart import (
     add_cart_details,
@@ -43,8 +44,9 @@ async def remove_items(item_id: PydanticObjectId, user_data=Depends(get_current_
     return await remove_items_from_cart(user_data.id, item_id)
 
 
-@cartRouter.post(
-    "/viewCart", status_code=status.HTTP_200_OK, description="View cart by user id"
+@cartRouter.get(
+    "/viewCart", status_code=status.HTTP_200_OK, description="View cart by user id",
+    response_model=ViewCartResponse
 )
 async def view_cart_route(user_data=Depends(get_current_user)):
 

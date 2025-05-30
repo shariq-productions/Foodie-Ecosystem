@@ -19,7 +19,12 @@ class CartAdminItem(BaseModel):
     price: float
 
 
+class CartAdminGroup(BaseModel):
+    admin_id: PydanticObjectId
+    items: List[CartAdminItem]
+
+
 class ViewCartResponse(BaseModel):
     cart_id: PydanticObjectId
     user_id: PydanticObjectId
-    admin: List[CartAdminItem]
+    admin: List[CartAdminGroup]

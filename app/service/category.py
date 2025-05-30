@@ -10,7 +10,7 @@ from app.models.category import CategoryDetailsModel
 
 async def add_category_details(category=AddCategorySchema) -> ShowCategoryDetails:
 
-    category_detail_doc = ShowCategoryDetails(
+    category_detail_doc = CategoryDetailsModel(
         category_name=category.category_name,
         category_description=category.category_description,
         image_url=category.image_url,
@@ -18,7 +18,8 @@ async def add_category_details(category=AddCategorySchema) -> ShowCategoryDetail
     try:
         await category_detail_doc.insert()
         return ShowCategoryDetails(
-            id=category_detail_doc.id, category_name=category_detail_doc.category_name
+            id=category_detail_doc.id, 
+            category_name=category_detail_doc.category_name
         )
 
     except Exception as e:

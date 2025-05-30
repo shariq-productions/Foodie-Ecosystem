@@ -1,8 +1,10 @@
 from app.models.item import ItemDetailsmModel
 from fastapi import HTTPException
 from beanie import PydanticObjectId
+from beanie.operators import In
 from app.schema.cart import ShowCartDetails
 from app.models.cart import CartDetailsModel
+from collections import defaultdict
 
 
 async def add_cart_details(
@@ -102,26 +104,26 @@ async def view_cart(user_id: PydanticObjectId):
     if not cart_items:
         return {"cart_id": None, "user_id": user_id, "admin": []}
 
-    # Collect all item_ids from cart
-    item_ids = [cart_item.item_id for cart_item in cart_items]
-    # Fetch all items in one go
-    from beanie.operators import In
+    item_ids = [
+        cart_item.item_id.ref.id if hasattr(cart_item.item_id, "ref") else cart_item.item_id
+        for cart_item in cart_items
+    ]
 
     items = await ItemDetailsmModel.find(In(ItemDetailsmModel.id, item_ids)).to_list()
     item_map = {str(item.id): item for item in items}
-
-    # Group cart items by vendor (item.user_id)
-    from collections import defaultdict
+    print("Item Map:", item_map)
 
     grouped = defaultdict(list)
     for cart_item in cart_items:
-        item = item_map.get(str(cart_item.item_id))
+        # Always convert cart_item.item_id to string for lookup
+        item_id_str = str(cart_item.item_id.ref.id if hasattr(cart_item.item_id, "ref") else cart_item.item_id)
+        item = item_map.get(item_id_str)
         if not item:
             continue
-        admin_id = str(item.user_id.id if hasattr(item.user_id, "id") else item.user_id)
+        admin_id = str(item.user_id.ref.id if hasattr(item.user_id, "ref") else item.user_id)
         grouped[admin_id].append(
             {
-                "item_id": cart_item.item_id,
+                "item_id": item_id_str,
                 "item_name": item.item_name,
                 "quantity": cart_item.quantity,
                 "price": cart_item.price,
@@ -129,9 +131,14 @@ async def view_cart(user_id: PydanticObjectId):
         )
 
     admin = [
-        {"admin_id": admin_id, "items": items} for admin_id, items in grouped.items()
+        {"admin_id": admin_id, "items": items}
+        for admin_id, items in grouped.items()
     ]
 
     cart_id = str(cart_items[0].id) if cart_items else None
 
-    return {"cart_id": cart_id, "user_id": user_id, "admin": admin}
+    return {
+        "cart_id": cart_id,
+        "user_id": str(user_id),
+        "admin": admin
+    }
