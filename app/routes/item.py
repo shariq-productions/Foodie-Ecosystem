@@ -22,8 +22,8 @@ itemRouter = APIRouter()
     response_model=ShowItemDetails,
     description="Add user deatils",
 )
-async def add_item(item: AddItemSchema):
-    item_data = await add_item_details(item)
+async def add_item(item: AddItemSchema, user_data=Depends(get_current_user)):
+    item_data = await add_item_details(item, user_data.id)
     return item_data
 
 
@@ -49,8 +49,8 @@ async def get_items_by_user(user_data=Depends(get_current_user)):
     response_model=ShowItemDetails,
     description="Update item",
 )
-async def update_item(item_id: PydanticObjectId, item: AddItemSchema):
-    return await updateItem(item_id, item)
+async def update_item(item_id: PydanticObjectId, item: AddItemSchema, user_data=Depends(get_current_user)):
+    return await updateItem(item_id, item, user_data.id)
 
 
 @itemRouter.delete(

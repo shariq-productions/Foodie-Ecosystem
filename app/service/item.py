@@ -10,7 +10,7 @@ from app.models.item import ItemDetailsmModel
 from beanie import PydanticObjectId
 
 
-async def add_item_details(item: AddItemSchema) -> ShowItemDetails:
+async def add_item_details(item: AddItemSchema, user_id) -> ShowItemDetails:
 
     item_detail = ItemDetailsmModel(
         item_name=item.item_name,
@@ -18,7 +18,7 @@ async def add_item_details(item: AddItemSchema) -> ShowItemDetails:
         cost=item.cost,
         rating=item.rating,
         image_url=item.image_url,
-        user_id=item.user_id,
+        user_id=user_id,
         category_id=item.category_id,
     )
     try:
@@ -106,7 +106,7 @@ async def viewAllItemByUserId(
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
 
 
-async def updateItem(item_id: PydanticObjectId, item: AddItemSchema) -> ShowItemDetails:
+async def updateItem(item_id: PydanticObjectId, item: AddItemSchema, user_id) -> ShowItemDetails:
     item_detail = await ItemDetailsmModel.get(item_id)
     if not item_detail:
         raise HTTPException(status_code=404, detail="Item not found")
@@ -115,7 +115,7 @@ async def updateItem(item_id: PydanticObjectId, item: AddItemSchema) -> ShowItem
     item_detail.cost = item.cost
     item_detail.rating = item.rating
     item_detail.image_url = item.image_url
-    item_detail.user_id = item.user_id
+    item_detail.user_id = user_id
     item_detail.category_id = item.category_id
     try:
         await item_detail.save()

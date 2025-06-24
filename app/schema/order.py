@@ -13,6 +13,11 @@ class OrderItemSchema(BaseModel):
 
 class ShowOrderDetails(BaseModel):
     id: PydanticObjectId
+    user_id: PydanticObjectId
+    admin_id: PydanticObjectId
+    items: List[OrderItemSchema]
+    status: str
+    time_of_order:str
 
 
 class AddOrderSchema(BaseModel):

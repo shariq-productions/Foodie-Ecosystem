@@ -1,4 +1,5 @@
 from typing import List
+from app.core.logger import logger
 from app.service.cart import view_cart
 from fastapi import HTTPException
 from app.schema.order import ShowOrderDetails, OrderItemSchema
@@ -6,7 +7,7 @@ from app.models.order import OrderDetailsModel
 from beanie import PydanticObjectId
 
 
-async def add_order_details(user_id: PydanticObjectId) -> List[ShowOrderDetails]:
+async def add_order_details(user_id: PydanticObjectId):
 
     cart_details = await view_cart(user_id)
     orders_to_create = []
@@ -34,11 +35,9 @@ async def add_order_details(user_id: PydanticObjectId) -> List[ShowOrderDetails]
         )
 
         orders_to_create.append(order_detail_doc)
-    order_details_list = []
     try:
         for order_doc in orders_to_create:
             await order_doc.insert()
-            order_details_list.append(ShowOrderDetails(id=order_doc.id))
         return
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -54,10 +53,11 @@ async def update_status(order_id: PydanticObjectId, status: str) -> ShowOrderDet
         await order.save()
         return ShowOrderDetails(
             id=order.id,
-            user_id=order.user_id,
-            admin_id=order.admin_id,
+            user_id=order.user_id.ref.id if hasattr(order.user_id, "ref") else order.user_id,
+            admin_id=order.admin_id.ref.id if hasattr(order.admin_id, "ref") else order.admin_id,
             items=order.items,
             status=order.status,
+            time_of_order=order.created_at.strftime("%d-%m-%Y at %I:%M %p") if hasattr(order, "created_at") and order.created_at else "",
         )
     except Exception as e:
         print(f"An error occurred: {e}")
@@ -67,15 +67,19 @@ async def update_status(order_id: PydanticObjectId, status: str) -> ShowOrderDet
 async def view_orders_by_user(user_id: PydanticObjectId) -> list[ShowOrderDetails]:
     try:
         orders = await OrderDetailsModel.find(
-            OrderDetailsModel.user_id == user_id
+            OrderDetailsModel.user_id.id == user_id
+            if hasattr(OrderDetailsModel.user_id, "id")
+            else OrderDetailsModel.user_id == user_id
         ).to_list()
+        logger.info(orders)
         return [
             ShowOrderDetails(
                 id=order.id,
-                user_id=order.user_id,
-                admin_id=order.admin_id,
+                user_id=order.user_id.ref.id if hasattr(order.user_id, "ref") else order.user_id,
+                admin_id=order.admin_id.ref.id if hasattr(order.admin_id, "ref") else order.admin_id,
                 items=order.items,
                 status=order.status,
+                time_of_order=order.created_at.strftime("%d-%m-%Y at %I:%M %p") if hasattr(order, "created_at") and order.created_at else "",
             )
             for order in orders
         ]
@@ -87,15 +91,18 @@ async def view_orders_by_user(user_id: PydanticObjectId) -> list[ShowOrderDetail
 async def view_orders_by_admin(admin_id: PydanticObjectId) -> list[ShowOrderDetails]:
     try:
         orders = await OrderDetailsModel.find(
-            OrderDetailsModel.admin_id == admin_id
+            OrderDetailsModel.admin_id.id == admin_id
+            if hasattr(OrderDetailsModel.admin_id, "id")
+            else OrderDetailsModel.admin_id == admin_id
         ).to_list()
         return [
             ShowOrderDetails(
                 id=order.id,
-                user_id=order.user_id,
-                admin_id=order.admin_id,
+                user_id=order.user_id.ref.id if hasattr(order.user_id, "ref") else order.user_id,
+                admin_id=order.admin_id.ref.id if hasattr(order.admin_id, "ref") else order.admin_id,
                 items=order.items,
                 status=order.status,
+                time_of_order=order.created_at.strftime("%d-%m-%Y at %I:%M %p") if hasattr(order, "created_at") and order.created_at else "",
             )
             for order in orders
         ]

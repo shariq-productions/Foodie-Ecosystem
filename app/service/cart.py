@@ -142,3 +142,17 @@ async def view_cart(user_id: PydanticObjectId):
         "user_id": str(user_id),
         "admin": admin
     }
+
+async def empty_cart( user_id: PydanticObjectId ):
+    try:
+        result = await CartDetailsModel.find(
+            (
+                CartDetailsModel.user_id.id == user_id
+                if hasattr(CartDetailsModel.user_id, "id")
+                else CartDetailsModel.user_id == user_id
+            )
+        ).delete()
+        return {"detail": f"{result.deleted_count} cart items removed successfully"}
+    except Exception as e:
+        print(f"An error occurred: {e}")
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")

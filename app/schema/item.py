@@ -13,13 +13,12 @@ class AddItemSchema(BaseModel):
     image_url: str = Field(..., example="https://example.com/image.jpg")
     cost: float = Field(..., example=10.99)
     category_id: PydanticObjectId
-    user_id: PydanticObjectId
     rating: float = Field(..., example=4.5)
 
 
 class ViewAllItemsByUserIdSchema(AddItemSchema):
     id: PydanticObjectId
-
+    user_id:PydanticObjectId
 
 class ViewAllItemsSchema(ViewAllItemsByUserIdSchema):
     product_count: int = Field(..., example=10)

@@ -17,4 +17,4 @@ class AddDeliveryInfoSchema(BaseModel):
     zip_code: str = Field(..., example="10001")
     country: str = Field(..., example="USA")
     phone_number: str = Field(..., example="1234567890")
-    user_id: PydanticObjectId
+

@@ -1,10 +1,11 @@
 from fastapi import HTTPException
 from app.schema.delivery_info import ShowDeliveryInfoDetails, AddDeliveryInfoSchema
 from app.models.delivery_info import DeliveryInfoDetailsModel
-
+from beanie import PydanticObjectId
 
 async def add_delivery_info_details(
     delivery_info: AddDeliveryInfoSchema,
+    user_id = PydanticObjectId
 ) -> ShowDeliveryInfoDetails:
     delivery_info_doc = DeliveryInfoDetailsModel(
         first_name=delivery_info.first_name,
@@ -16,7 +17,7 @@ async def add_delivery_info_details(
         zip_code=delivery_info.zip_code,
         country=delivery_info.country,
         phone_number=delivery_info.phone_number,
-        user_id=delivery_info.user_id,
+        user_id=user_id,
     )
     try:
         await delivery_info_doc.insert()
