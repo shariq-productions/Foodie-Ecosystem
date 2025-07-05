@@ -1,3 +1,4 @@
+from app.models.transaction import TransactionModel
 from beanie import init_beanie
 from motor.motor_asyncio import AsyncIOMotorClient
 from app.models.user import UserDetailModel
@@ -17,6 +18,7 @@ async def init_db():
     await init_beanie(
         database=client.get_database(settings.database_name),
         document_models=[
+            TransactionModel,
             UserDetailModel,
             CartDetailsModel,
             ItemDetailsmModel,

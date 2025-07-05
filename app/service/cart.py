@@ -46,7 +46,6 @@ async def add_cart_details(
         await cart_detail_doc.insert()
         return ShowCartDetails(id=cart_detail_doc.id)
 
-
 async def remove_item_from_cart(
     user_id: PydanticObjectId, item_id: PydanticObjectId
 ) -> dict:
@@ -72,7 +71,6 @@ async def remove_item_from_cart(
         await cart_item.delete()
         return {"detail": "Cart item removed from cart"}
 
-
 async def remove_items_from_cart(
     user_id: PydanticObjectId, item_id: PydanticObjectId
 ) -> dict:
@@ -93,7 +91,6 @@ async def remove_items_from_cart(
     except Exception as e:
         print(f"An error occurred: {e}")
         raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
-
 
 async def view_cart(user_id: PydanticObjectId):
     cart_items = await CartDetailsModel.find(
@@ -155,4 +152,17 @@ async def empty_cart( user_id: PydanticObjectId ):
         return {"detail": f"{result.deleted_count} cart items removed successfully"}
     except Exception as e:
         print(f"An error occurred: {e}")
-        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"An error occurred: {str(e)}")   
+
+async def get_total_amount(user_id: PydanticObjectId):
+    cart_items = await CartDetailsModel.find(
+        CartDetailsModel.user_id.id == user_id
+        if hasattr(CartDetailsModel.user_id, "id")
+        else CartDetailsModel.user_id == user_id
+    ).to_list()
+    
+    if not cart_items:
+        return 0.0
+
+    total_amount = sum(cart_item.price * cart_item.quantity for cart_item in cart_items)
+    return total_amount

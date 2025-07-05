@@ -6,6 +6,7 @@ from app.routes.delivery_info import deliveryInfoRouter
 from app.routes.item import itemRouter
 from app.routes.order import orderRouter
 from app.routes.category import categoryRouter
+from app.routes.stripe import stripeRouter
 
 router = APIRouter()
 
@@ -32,5 +33,11 @@ router.include_router(
     categoryRouter,
     prefix="/category",
     tags=["category"],
+    dependencies=[Depends(get_current_user)],
+)
+router.include_router(
+    stripeRouter,
+    prefix="/stripe",
+    tags=["stripe"],
     dependencies=[Depends(get_current_user)],
 )
